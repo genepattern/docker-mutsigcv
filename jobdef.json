@@ -1,0 +1,28 @@
+{
+    "containerProperties": {
+        "command": [
+            "/usr/local/bin/runS3OnBatch.sh",
+            "Ref::taskLib",
+            "Ref::inputFileDirectory",
+            "Ref::s3_root",
+            "Ref::working_dir",
+            "Ref::exe1"
+        ],
+        "jobRoleArn": "arn:aws:iam::718039241689:role/BATCH-EFS-ROLE",
+        "image": "genepattern/docker-mutsigcv",
+        "memory": 200,
+        "mountPoints": [],
+        "ulimits": [],
+        "vcpus": 1,
+        "volumes": []
+    },
+    "jobDefinitionName": "MutSigCV_1_2",
+    "parameters": {
+        "exe1": "echo 'command line not set'",
+        "inputFileDirectory": "job_22345",
+        "s3_root": "noSuchBucket",
+        "taskLib": "src",
+        "working_dir": "job1"
+    },
+    "type": "container"
+}
