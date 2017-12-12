@@ -64,7 +64,7 @@ shift
 
 # run the module
 echo $@
-runMatlab.sh $@ >$STDOUT_FILENAME 2>$STDERR_FILENAME
+$@ >$STDOUT_FILENAME 2>$STDERR_FILENAME
 
 # send the generated files back
 aws s3 sync . $S3_ROOT$WORKING_DIR --quiet
