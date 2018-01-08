@@ -1,4 +1,5 @@
 #!/bin/sh
+# copyright 2017-2018 Regents of the University of California and the Broad Institute. All rights reserved.
 
 #
 # parameters to this come from the JobRunner implementation
