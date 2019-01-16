@@ -1,46 +1,46 @@
 # copyright 2017-2018 Regents of the University of California and the Broad Institute. All rights reserved.
 FROM ubuntu:14.04
 
-RUN apt-get update && apt-get upgrade --yes && \ 
-	apt-get install -y wget && \
-	apt-get install --yes bc vim libxpm4 libXext6 libXt6 libXmu6 libXp6 zip unzip
+RUN \
+     apt-get update \
+  && apt-get install -y \
+    wget \
+    curl \
+    zip \
+    unzip \
+    xorg \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get upgrade --yes && \
-    apt-get install build-essential --yes && \
-    apt-get install python-dev groff  --yes --force-yes && \
-    apt-get install default-jre --yes --force-yes && \
-    wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py  && \
-    apt-get install software-properties-common --yes --force-yes && \
-    add-apt-repository ppa:fkrull/deadsnakes-python2.7 --yes 
+# Install Matlab Component Runtime
+#   <run-with-env> -u Matlab-2013a-MCR 
+#   MATLAB Release: R2013a (8.1)
+#   MATLAB Component Runtime (MCR): 8.1
 
-RUN    apt-get update --yes --force-yes && \
-    apt-get install python2.7 --yes --force-yes && \
-    python get-pip.py 
+ENV MCR_BASE="/opt/matlab-mcr"
+ENV MCR_VERSION="v81"
+ENV MCR_HOME="${MCR_BASE}/${MCR_VERSION}"
 
-RUN pip install awscli 
+RUN mkdir -p ${MCR_BASE} \
+  && mcr_install_dir=${mcr_base}_install \
+  && mkdir -p ${mcr_install_dir} \
+  && cd ${mcr_install_dir} \
+  && wget http://ssd.mathworks.com/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_glnxa64_installer.zip \
+  && unzip -q MCR_R2013a_glnxa64_installer.zip \
+  && ./install -mode silent -agreeToLicense yes -destinationFolder ${MCR_BASE} \
+  && cd / \
+  && rm -rf ${mcr_install_dir}
 
-RUN mkdir /home/gistic
-WORKDIR /home/gistic
+ENV LD_LIBRARY_PATH="${MCR_HOME}/runtime/glnxa64:${MCR_HOME}/bin/glnxa64:${MCR_HOME}/sys/os/glnxa64:${MCR_HOME}/sys/java/jre/glnxa64/jre/lib/amd64/native_threads:${MCR_HOME}/sys/java/jre/glnxa64/jre/lib/amd64/server:${MCR_HOME}/sys/java/jre/glnxa64/jre/lib/amd64"
+ENV XAPPLRESDIR="${MCR_HOME}/X11/app-defaults"
 
-RUN mkdir /home/gistic/MCRInstaller
+#
+# Install MutSigCV binary
+#
+ENV MUTSIG_HOME /opt/mutsig
+RUN mkdir -p ${MUTSIG_HOME}/bin
+COPY gp_MutSigCV ${MUTSIG_HOME}/bin
+RUN chmod u+x ${MUTSIG_HOME}/bin/gp_MutSigCV
+COPY gp_MutSigCV.ctf ${MUTSIG_HOME}/bin
+ENV PATH=${MUTSIG_HOME}/bin:${PATH}
 
-RUN cd /home/gistic/MCRInstaller && \
-   wget https://www.mathworks.com/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_glnxa64_installer.zip && \
-   unzip MCR_R2013a_glnxa64_installer.zip
-
-RUN mkdir /build
-COPY Dockerfile /build/Dockerfile
-
-COPY runMatlab.sh /usr/local/bin/runMatlab.sh
-COPY runS3OnBatch.sh /usr/local/bin/runS3OnBatch.sh
-COPY runLocal.sh /usr/local/bin/runLocal.sh
-COPY matlab.conf /etc/ld.so.conf.d/matlab.conf
-
-RUN  chmod a+x /usr/local/bin/runMatlab.sh && \
-	cd MCRInstaller && \
-     	/home/gistic/MCRInstaller/install -mode silent -agreeToLicense yes 
-
-
-
-CMD ["/bin/bash", "runMatlab.sh"]
-
+CMD ["gp_MutSigCV"]
